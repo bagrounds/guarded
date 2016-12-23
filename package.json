@@ -1,0 +1,19 @@
+{
+  "name": "guarded",
+  "version": "0.1.0",
+  "description": "Guard functions by checking input and output",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/bagrounds/guarded.git"
+  },
+  "author": "bagrounds@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitlab.com/bagrounds/guarded/issues"
+  },
+  "homepage": "https://gitlab.com/bagrounds/guarded#README"
+}
