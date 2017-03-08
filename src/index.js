@@ -1,25 +1,45 @@
+/**
+ *
+ * @module guarded
+ */
 ;(function () {
   'use strict'
 
   /* imports */
-  var funPredicate = require('fun-predicate')
+  var R = require('ramda')
+  var funAssert = require('fun-assert')
   var compose = require('fun-compose')
 
+  var INPUT_TYPE = '{inputs: [Function], f: Function, output: Function}'
+
   /* exports */
-  module.exports = guarded
+  module.exports = guarded({
+    inputs: [funAssert.type(INPUT_TYPE)],
+    f: guarded,
+    output: funAssert.type('Function')
+  })
 
   /**
    *
+   * @function module:guarded.guarded
+   *
    * @param {Object} options all input parameters
-   * @param {Function} options.input - contract
+   * @param {[Function]} options.inputs - contracts
    * @param {Function} options.f - function to guard
    * @param {Function} options.output - contract
+   *
    * @return {Function} f guarded with input and output contracts
    */
   function guarded (options) {
-    funPredicate.type('{input: Function, f: Function, output: Function}')
+    return compose(options.output, guardInputs(options.f, options.inputs))
+  }
 
-    return [options.output, options.f, options.input].reduce(compose)
+  function guardInputs (f, contracts) {
+    return function () {
+      var args = Array.prototype.slice.call(arguments).map(R.of)
+
+      return R.apply(f, R.zipWith(R.apply, contracts, args))
+    }
   }
 })()
 
