@@ -31,7 +31,10 @@
    * @return {Function} f guarded with input and output contracts
    */
   function guarded (options) {
-    return compose(options.output, guardInputs(options.f, options.inputs))
+    return setName(
+      options.f.name,
+      compose(options.output, guardInputs(options.f, options.inputs))
+    )
   }
 
   function guardInputs (f, contracts) {
@@ -40,6 +43,22 @@
 
       return R.apply(f, R.zipWith(R.apply, contracts, args))
     }
+  }
+
+  function setName (name, f) {
+    return setProp('name', name, f)
+  }
+
+  function setProp (key, value, target) {
+    return Object.defineProperty(
+      target,
+      key,
+      Object.defineProperty(
+        Object.getOwnPropertyDescriptor(target, key),
+        'value',
+        { value: value }
+      )
+    )
   }
 })()
 
