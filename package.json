@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "fun-assert": "^0.10.0",
-    "fun-compose": "^0.3.0",
+    "fun-compose": "^0.3.1",
     "ramda": "^0.23.0"
   }
 }
