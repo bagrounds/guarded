@@ -31,7 +31,11 @@
    * @return {Function} f guarded with input and output contracts
    */
   function guarded (options) {
-    return compose(options.output, guardInputs(options.f, options.inputs))
+    return setProp(
+      'length',
+      options.f.length,
+      compose(options.output, guardInputs(options.f, options.inputs))
+    )
   }
 
   function guardInputs (f, contracts) {
@@ -42,7 +46,7 @@
     })
   }
 
-  function setName (contracts, fname,  f) {
+  function setName (contracts, fname, f) {
     var name = fname + '(' + contracts.map(function (c) {
       return c.name
     }).join(',') + ')'
