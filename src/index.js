@@ -6,52 +6,30 @@
   'use strict'
 
   /* imports */
-  var R = require('ramda')
-  var funAssert = require('fun-assert')
-  var compose = require('fun-compose')
-
-  var INPUT_TYPE = '{inputs: [Function], f: Function, output: Function}'
+  var fn = require('fun-function')
 
   /* exports */
-  module.exports = guarded({
-    inputs: [funAssert.type(INPUT_TYPE)],
-    f: guarded,
-    output: funAssert.type('Function')
-  })
+  module.exports = guarded
 
-  /**
-   *
-   * @function module:guarded.guarded
-   *
-   * @param {Object} options all input parameters
-   * @param {[Function]} options.inputs - contracts
-   * @param {Function} options.f - function to guard
-   * @param {Function} options.output - contract
-   *
-   * @return {Function} f guarded with input and output contracts
-   */
   function guarded (options) {
-    return setProp(
-      'length',
-      options.f.length,
-      compose(options.output, guardInputs(options.f, options.inputs))
-    )
+    return setProp('length', options.f.length, setProp('name', options.f.name,
+      fn.compose(
+        fn.curry(assert)(options.output),
+        fn.reArg(fn.tee(fn.curry(assert)(options.inputs)), options.f)
+      )
+    ))
   }
 
-  function guardInputs (f, contracts) {
-    return setName(contracts, f.name, function () {
-      var args = Array.prototype.slice.call(arguments).map(R.of)
+  function assert (predicate, subject) {
+    if (!(predicate(subject))) {
+      throw Error('!' + predicate.name + '(' + stringify(subject) + ')')
+    }
 
-      return R.apply(f, R.zipWith(R.apply, contracts, args))
-    })
+    return subject
   }
 
-  function setName (contracts, fname, f) {
-    var name = fname + '(' + contracts.map(function (c) {
-      return c.name
-    }).join(',') + ')'
-
-    return setProp('name', name, f)
+  function stringify (x) {
+    return JSON.stringify(x)
   }
 
   function setProp (key, value, target) {
