@@ -4,17 +4,15 @@ rm -rf public coverage docs node_modules
 
 npm install
 
-mkdir public
+npm run readme
+
+npm run document
 
 npm run coverage
 
 mv coverage public/
 
-npm run document
-
-mv docs public/
-
-npm run pages-index
+mv img public/
 
 exit 0
 
