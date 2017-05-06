@@ -12,7 +12,7 @@ Guard functions by checking input and output
 
 ## [Test Coverage](https://bagrounds.gitlab.io/guarded/coverage/lcov-report/index.html)
 
-## [API Docs](https://bagrounds.gitlab.io/guarded/docs/index.html)
+## [API Docs](https://bagrounds.gitlab.io/guarded/index.html)
 
 ## Dependencies
 
