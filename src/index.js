@@ -6,7 +6,9 @@
   'use strict'
 
   /* imports */
-  var fn = require('fun-function')
+  var fn = require('./lib/fun-function')
+  var setProp = require('./lib/set-prop')
+  var assert = require('./lib/assert')
 
   /* exports */
   module.exports = guarded
@@ -18,30 +20,6 @@
         fn.reArg(fn.tee(fn.curry(assert)(options.inputs)), options.f)
       )
     ))
-  }
-
-  function assert (predicate, subject) {
-    if (!(predicate(subject))) {
-      throw Error('!' + predicate.name + '(' + stringify(subject) + ')')
-    }
-
-    return subject
-  }
-
-  function stringify (x) {
-    return JSON.stringify(x)
-  }
-
-  function setProp (key, value, target) {
-    return Object.defineProperty(
-      target,
-      key,
-      Object.defineProperty(
-        Object.getOwnPropertyDescriptor(target, key),
-        'value',
-        { value: value }
-      )
-    )
   }
 })()
 
