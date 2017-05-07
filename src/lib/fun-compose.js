@@ -1,7 +1,3 @@
-/**
- *
- * @module fun-compose
- */
 ;(function () {
   'use strict'
 
