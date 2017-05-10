@@ -1,9 +1,12 @@
+/**
+ *
+ * @module fun-function
+ */
 ;(function () {
   'use strict'
 
   /* imports */
-  var curry = require('./fun-curry')
-  var funCompose = require('./fun-compose')
+  var stringify = require('./stringify-anything')
   var unfold = require('./fun-unfold')
   var setProp = require('./set-prop')
 
@@ -27,6 +30,39 @@
     apply: curry(apply),
     applyFrom: curry(applyFrom),
     curry: curry
+  }
+
+  /**
+   *
+   * @function module:fun-function.curry
+   *
+   * @param {Function} f - function to curry
+   * @param {Number} [arity] - number of arguments f should accept
+   * @param {Array} [args] - initial arguments to apply
+   *
+   * @return {Function} a_1 -> a_2 -> ... -> a_arity -> f(a_1, ..., a_arity)
+   */
+  function curry (f, arity, args) {
+    arity = arity || f.length
+    args = args || []
+
+    return setProp('name', partialName(f, args),
+      setProp('length', arity, function () {
+        var newPartialArgs = Array.prototype.slice.call(arguments)
+
+        var newArgs = args.concat(
+          newPartialArgs.length ? newPartialArgs : [undefined]
+        )
+
+        return newArgs.length >= arity
+          ? f.apply(null, newArgs)
+          : setProp('length', arity - newArgs.length, curry(f, arity, newArgs))
+      })
+    )
+
+    function partialName (f, args) {
+      return stringify(f) + '(' + stringify(args) + ')'
+    }
   }
 
   /**
@@ -235,7 +271,12 @@
    * @return {Function} (f . g) - the N-ary function composition of f and g
    */
   function compose (f, g) {
-    return funCompose(f, g)
+    return setProp(
+      'length',
+      g.length,
+      setProp('name', stringify(f) + '.' + stringify(g), function () {
+        return f(g.apply(null, arguments))
+      }))
   }
 
   /**

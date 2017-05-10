@@ -17,24 +17,24 @@
   }
 
   var returnsFunction = [
-    [[{ inputs: inputs, f: f, output: output }], predicate.type('Function')]
+    [[inputs, output, f], predicate.type('Function')]
   ]
 
   var acceptsGoodInputs = [
     [
-      [{ inputs: inputs, f: f, output: output }],
+      [inputs, output, f],
       fn.compose(predicate.equal(f(1, 2, 3)), lens.get([[1, 2, 3]]))
     ]
   ]
 
   var rejectsBadInputs = array.cartesian(
-    [[{ inputs: inputs, f: f, output: output }]],
+    [[inputs, output, f]],
     [['1', 2, 3], [1, '2', 3], [1, 2, '3']]
   ).map(array.ap([fn.id, predicate.throwsWith]))
 
   var rejectsBadOutputs = [
     [
-      [{ inputs: inputs, f: fn.compose(array.of, f), output: output }],
+      [inputs, output, fn.compose(array.of, f)],
       predicate.throwsWith([1, 2, 3])
     ]
   ]

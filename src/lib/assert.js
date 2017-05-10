@@ -2,7 +2,7 @@
   'use strict'
 
   /* imports */
-  var stringify = require('./stringify')
+  var stringify = require('./stringify-anything')
 
   /* exports */
   module.exports = assert

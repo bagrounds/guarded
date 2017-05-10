@@ -11,24 +11,23 @@
   var assert = require('./lib/assert')
 
   /* exports */
-  module.exports = guarded
+  module.exports = fn.curry(guarded)
 
   /**
    *
    * @function module:guarded.guarded
    *
-   * @param {Object} options - all input parameters
-   * @param {Function} options.inputs - Array -> Boolean
-   * @param {Function} options.f - (a, b, ...) -> z
-   * @param {Function} options.output - z -> Boolean
+   * @param {Function} inputsGuard - Array -> Boolean
+   * @param {Function} outputGuard - z -> Boolean
+   * @param {Function} f - (a, b, ...) -> z
    *
-   * @return {Function} f guarded by inputs and output
+   * @return {Function} f guarded by inputsGuard and outputGuard
    */
-  function guarded (options) {
-    return setProp('length', options.f.length, setProp('name', options.f.name,
+  function guarded (inputsGuard, outputGuard, f) {
+    return setProp('length', f.length, setProp('name', f.name,
       fn.compose(
-        fn.curry(assert)(options.output),
-        fn.reArg(fn.tee(fn.curry(assert)(options.inputs)), options.f)
+        fn.curry(assert)(outputGuard),
+        fn.reArg(fn.tee(fn.curry(assert)(inputsGuard)), f)
       )
     ))
   }
