@@ -6,12 +6,12 @@
   'use strict'
 
   /* imports */
-  var fn = require('./lib/fun-function')
+  var curry = require('fun-curry')
   var setProp = require('./lib/set-prop')
   var assert = require('./lib/assert')
 
   /* exports */
-  module.exports = fn.curry(guarded)
+  module.exports = curry(guarded)
 
   /**
    *
@@ -24,12 +24,17 @@
    * @return {Function} f guarded by inputsGuard and outputGuard
    */
   function guarded (inputsGuard, outputGuard, f) {
-    return setProp('length', f.length, setProp('name', f.name,
-      fn.compose(
-        fn.curry(assert)(outputGuard),
-        fn.reArg(fn.tee(fn.curry(assert)(inputsGuard)), f)
+    return setProp('length', f.length,
+      setProp('name', f.name,
+        function () {
+          return assert(outputGuard,
+            f.apply(null,
+              assert(inputsGuard, Array.prototype.slice.call(arguments))
+            )
+          )
+        }
       )
-    ))
+    )
   }
 })()
 
