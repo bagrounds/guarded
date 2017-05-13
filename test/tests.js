@@ -6,7 +6,6 @@
   var funTest = require('fun-test')
   var arrange = require('fun-arrange')
   var array = require('fun-array')
-  var lens = require('fun-lens')
   var fn = require('fun-function')
 
   var output = predicate.type('Number')
@@ -23,7 +22,7 @@
   var acceptsGoodInputs = [
     [
       [inputs, output, f],
-      fn.compose(predicate.equal(f(1, 2, 3)), lens.get([[1, 2, 3]]))
+      fn.compose(predicate.equal(f(1, 2, 3)), fn.apply([1, 2, 3]))
     ]
   ]
 
