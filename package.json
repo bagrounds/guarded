@@ -46,7 +46,7 @@
     "madge": "2.2.0",
     "next-update": "^3.6.0",
     "tap": "11.0.1",
-    "uglify-js": "3.2.2"
+    "uglify-js-es6": "^2.8.9"
   },
   "dependencies": {
     "fun-curry": "^0.3.0",
