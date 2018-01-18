@@ -6,8 +6,30 @@
   'use strict'
 
   /* imports */
+  const stringify = require('stringify-anything')
   const curry = require('fun-curry')
-  const u = require('./utils')
+
+  const empty = as => as.length === 0
+  const isNum = x => typeof x === 'number'
+  const isFun = x => typeof x === 'function'
+
+  const objMap = (f, o) => Object.keys(o)
+    .reduce((a, k) => { a[k] = f(o[k]); return a }, {})
+
+  const show = x => `\`${stringify(x)}\``
+
+  const toss = e => { throw e }
+  const preface = 'A contract with a guarded function has been broken!\n'
+  const assert = (p, s, e) => p(s) ? s : toss(e)
+
+  const setProp = (key, value, target) =>
+    Object.defineProperty(target, key, Object.defineProperty(
+      Object.getOwnPropertyDescriptor(target, key),
+      'value',
+      { value: value }))
+
+  const nameAndLength = (from, to) =>
+    setProp('length', from.length, setProp('name', from.name, to))
 
   /**
    *
@@ -18,15 +40,26 @@
    *
    * @return {Function} f with (input, output) guarded by p
    */
-  const io = (p, f) => {
-    const msg = (i, o) => `(input -> output) pair (${u.show(i)} -> ` +
-      `${u.show(o)}) from function ${u.show(f)} failed predicate ${u.show(p)}`
+  const io = (p, f, ...rest) => {
+    assert(isFun, p,
+      Error(preface + `${show(p)} should be a function`))
+    assert(isFun, f,
+      Error(preface + `${show(f)} should be a function`))
+    assert(empty, rest,
+      Error(preface + `Extra arguments passed to io: ${show(rest)}`))
 
-    return u.nameAndLength(
+    return nameAndLength(
       f,
       (...input) => {
-        const output = f.apply(null, input)
-        u.assert(p.bind(null, input), output, msg(input, output))
+        const output = f(...input)
+        assert(
+          curry(p)(input),
+          output,
+          Error(preface +
+          `(inputs -> output) pair (${show(input)} ->` +
+          ` ${show(output)}) from function ${show(f)}` +
+          ` failed predicate ${show(p)}`)
+        )
         return output
       })
   }
@@ -40,7 +73,27 @@
    *
    * @return {Function} f with arguments array guarded by p
    */
-  const inputs = (p, f) => io((i, o) => p(i), f)
+  const inputs = (p, f, ...rest) => {
+    assert(isFun, p,
+      Error(preface + `${show(p)} should be a function`))
+    assert(isFun, f,
+      Error(preface + `${show(f)} should be a function`))
+    assert(empty, rest,
+      Error(preface + `Extra arguments passed to inputs: ${show(rest)}`))
+
+    return nameAndLength(
+      f,
+      (...inputs) => {
+        assert(
+          p,
+          inputs,
+          Error(preface + `inputs ${show(inputs)} to function ${show(f)}` +
+            ` failed predicate ${show(p)}`)
+        )
+
+        return f(...inputs)
+      })
+  }
 
   /**
    *
@@ -52,7 +105,28 @@
    *
    * @return {Function} f with ith argument guarded by p
    */
-  const inputN = (i, p, f) => inputs(u.b(p, u.get(i)), f)
+  const inputN = (i, p, f, ...rest) => {
+    assert(isNum, i,
+      Error(preface + `${show(i)} should be a number`))
+    assert(isFun, p,
+      Error(preface + `${show(p)} should be a function`))
+    assert(isFun, f,
+      Error(preface + `${show(f)} should be a function`))
+    assert(empty, rest,
+      Error(preface + `Extra arguments passed to inputN: ${show(rest)}`))
+
+    return nameAndLength(
+      f,
+      (...inputs) => {
+        assert(
+          p,
+          inputs[i],
+          Error(preface + `input ${i} ${show(inputs[i])} to function` +
+            ` ${show(f)} failed predicate ${show(p)}`)
+        )
+        return f(...inputs)
+      })
+  }
 
   /**
    *
@@ -63,7 +137,7 @@
    *
    * @return {Function} f with single argument guarded by p
    */
-  const input = (p, f) => inputN(0, p, f)
+  const input = (p, f, ...rest) => inputN(0, p, f, ...rest)
 
   /**
    *
@@ -74,21 +148,31 @@
    *
    * @return {Function} f with output guarded by p
    */
-  const output = (p, f) => io((i, o) => p(o), f)
+  const output = (p, f, ...rest) => {
+    assert(isFun, p,
+      Error(preface + `${show(p)} should be a function`))
+    assert(isFun, f,
+      Error(preface + `${show(f)} should be a function`))
+    assert(empty, rest,
+      Error(preface + `Extra arguments passed to output: ${show(rest)}`))
+
+    return nameAndLength(
+      f,
+      (...inputs) => {
+        const output = f(...inputs)
+        assert(
+          p,
+          output,
+          Error(preface + `output ${show(output)} of function ${show(f)}` +
+            ` with arguments ${show(inputs)} failed predicate ${show(p)}`)
+        )
+        return output
+      })
+  }
 
   const api = { io, inputs, inputN, input, output }
 
-  const guards = u.objMap(curry(api.io), {
-    input: (i, o) => u.nFuns(2)(i) && u.isFun(o),
-    inputN: (i, o) => u.and(u.lenEqual(3))(
-      u.b(u.all, u.arrAp([u.and(u.isNum)(u.gte(0)), u.isFun, u.isFun]))
-    )(i) && u.isFun(o),
-    inputs: (i, o) => u.nFuns(2)(i) && u.isFun(o),
-    output: (i, o) => u.nFuns(2)(i) && u.isFun(o),
-    io: (i, o) => u.nFuns(2)(i) && u.isFun(o)
-  })
-
   /* exports */
-  module.exports = u.objMap(curry, u.objAp(guards, api))
+  module.exports = objMap(curry, api)
 })()
 

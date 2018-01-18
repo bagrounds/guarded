@@ -1,130 +1,133 @@
-;(function () {
+;(() => {
   'use strict'
 
   /* imports */
-  const p = require('fun-predicate')
-  const funTest = require('fun-test')
-  const object = require('fun-object')
-  const array = require('fun-array')
-  const scalar = require('fun-scalar')
-  const fn = require('fun-function')
+  const { throwsWith, equal } = require('fun-predicate')
+  const { sync } = require('fun-test')
+  const { get } = require('fun-object')
+  const { flatten, repeat, range, map, fold, concat, of } = require('fun-array')
+  const { add, gt } = require('fun-scalar')
+  const curry = require('fun-curry')
+  const { id, argsToArray, k, compose } = require('fun-function')
+  const prop = require('fun-property')
 
-  const u = object.map(fn.curry, {
-    fnEqualFor: (x, f1, f2) => fn.lift(scalar.equal)(f1, f2)(x)
-  })
+  const equalFor = (() => {
+    const equalFor = (equal, xs, f1, f2) => prop.equalFor(xs, { equal, f1, f2 })
 
-  const tests = array.fold(array.concat, [], [
-    array.map(
+    return curry(equalFor)
+  })()
+
+  const tests = fold(concat, [], [
+    map(
       x => ({
-        predicate: u.fnEqualFor(x)(fn.id),
-        inputs: [scalar.gt(0), fn.id],
-        contra: object.get('input')
+        predicate: equalFor(equal, x, id),
+        inputs: [gt(0), id],
+        contra: get('input')
       }),
-      array.range(1, 9)
+      map(of, range(1, 9))
     ),
-    array.map(
+    map(
       x => ({
-        predicate: p.throwsWith([x]),
-        inputs: [scalar.gt(0), fn.id],
-        contra: object.get('input')
+        predicate: throwsWith(x),
+        inputs: [gt(0), id],
+        contra: get('input')
       }),
-      array.range(-9, 0)
+      map(of, range(-9, 0))
     ),
-    array.map(
+    map(
       x => ({
-        predicate: u.fnEqualFor(x)(scalar.sum),
-        inputs: [fn.argsToArray(scalar.equal), scalar.sum],
-        contra: object.get('inputs')
+        predicate: equalFor(equal, x, add),
+        inputs: [argsToArray(equal), add],
+        contra: get('inputs')
       }),
-      array.map(array.repeat(2), array.range(1, 9))
+      map(repeat(2), range(1, 9))
     ),
-    array.map(
+    map(
       x => ({
-        predicate: p.throwsWith(x),
-        inputs: [fn.argsToArray(scalar.equal), scalar.sum],
-        contra: object.get('inputs')
+        predicate: throwsWith(x),
+        inputs: [argsToArray(equal), add],
+        contra: get('inputs')
       }),
-      array.map(n => ([n, n + 1]), array.range(1, 9))
+      map(n => ([n, n + 1]), range(1, 9))
     ),
-    array.map(
+    map(
       x => ({
-        predicate: u.fnEqualFor(x)(scalar.sum),
-        inputs: [1, scalar.equal(0), scalar.sum],
-        contra: object.get('inputN')
+        predicate: equalFor(equal, x, add),
+        inputs: [1, equal(0), add],
+        contra: get('inputN')
       }),
-      array.map(n => ([n, 0]), array.range(1, 9))
+      map(n => ([n, 0]), range(1, 9))
     ),
-    array.map(
+    map(
       x => ({
-        predicate: p.throwsWith(x),
-        inputs: [1, scalar.equal(0), scalar.sum],
-        contra: object.get('inputN')
+        predicate: throwsWith(x),
+        inputs: [1, equal(0), add],
+        contra: get('inputN')
       }),
-      array.map(array.repeat(2), array.range(1, 9))
+      map(repeat(2), range(1, 9))
     ),
-    array.map(
+    map(
       x => ({
-        predicate: u.fnEqualFor(x)(scalar.sum(1)),
-        inputs: [scalar.gt(0), scalar.sum(1)],
-        contra: object.get('output')
+        predicate: equalFor(equal, x, add(1)),
+        inputs: [gt(0), add(1)],
+        contra: get('output')
       }),
-      array.range(0, 9)
+      map(of, range(0, 9))
     ),
-    array.map(
+    map(
       x => ({
-        predicate: p.throwsWith(x),
-        inputs: [scalar.gt(0), scalar.sum(1)],
-        contra: object.get('output')
+        predicate: throwsWith(x),
+        inputs: [gt(0), add(1)],
+        contra: get('output')
       }),
-      array.range(-9, -1)
+      map(of, range(-9, -1))
     ),
-    array.map(
+    map(
       x => ({
-        predicate: u.fnEqualFor(x)(fn.id),
-        inputs: [([i], o) => i === o, fn.id],
-        contra: object.get('io')
+        predicate: equalFor(equal, x, add(1)),
+        inputs: [([i], o) => i + 1 === o, add(1)],
+        contra: get('io')
       }),
-      array.range(-5, 5)
+      map(of, range(-5, 5))
     ),
-    array.map(
+    map(
       x => ({
-        predicate: p.throwsWith(x),
-        inputs: [([i], o) => i === o, scalar.sum(1)],
-        contra: object.get('io')
+        predicate: throwsWith(x),
+        inputs: [([i], o) => i === o, add(1)],
+        contra: get('io')
       }),
-      array.range(-5, 5)
+      map(of, range(-5, 5))
     ),
-    array.map(
+    map(
       ([name, x]) => ({
-        predicate: p.throwsWith(x),
-        contra: s => x => fn.apply(x, object.get(name, s))
+        predicate: throwsWith(x),
+        contra: compose(k, get(name))
       }),
-      array.flatten(array.map(([name, xs]) => array.map(x => [name, x], xs), [
+      flatten(map(([name, xs]) => map(x => [name, x], xs), [
         [
           'io',
-          [[fn.id, 'x => x'], [fn.id, fn.id, '']]
+          [[id, ''], ['', id], [id, id, 'extra']]
         ],
         [
           'inputs',
-          [[0, fn.id], [fn.id, fn.id, 0]]
+          [[id, ''], ['', id], [id, id, 'extra']]
         ],
         [
           'inputN',
-          [['0', fn.id, fn.id], [0, fn.id, fn.id, []], [-1, fn.id, fn.id]]
+          [['', id, id], [0, '', id], [0, id, ''], [0, id, id, 'extra']]
         ],
         [
           'input',
-          [[fn.id, []], [fn.id, fn.id, {}]]
+          [[id, ''], ['', id], [id, id, 'extra']]
         ],
         [
           'output',
-          [[{}, fn.id], [fn.id, fn.id, null]]
+          [[id, ''], ['', id], [id, id, 'extra']]
         ]
-      ]))
-    )
+      ])))
   ])
 
   /* exports */
-  module.exports = tests.map(funTest.sync)
+  module.exports = tests.map(sync)
 })()
 
