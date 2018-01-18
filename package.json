@@ -1,6 +1,6 @@
 {
   "name": "guarded",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "description": "Guard functions by checking input and output",
   "main": "src/index.js",
   "browser": "dist/bundle.js",
